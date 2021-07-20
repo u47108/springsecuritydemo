@@ -1,2 +1,0 @@
-com/sample/springsecurity/demo/DemoApplicationTests.java
- com.sample.springsecurity.demo.DemoApplicationTests
