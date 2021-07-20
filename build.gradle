@@ -1,0 +1,86 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies { 
+     classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"}
+}
+
+
+
+plugins {
+	id 'org.springframework.boot' version '2.5.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id "com.diffplug.eclipse.apt" version "3.26.0" // Only for Eclipse
+}
+apply plugin: 'eclipse'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.sample.springsecurity'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+    mapstruct
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+ext {
+    mapstructVersion = "1.4.2.Final"
+    lombokVersion= "1.18.16"
+}
+ 
+repositories {
+	mavenCentral()
+	maven { url 'http://repo1.maven.org/maven2' }
+    jcenter { url "http://jcenter.bintray.com/" }
+}
+
+dependencies {
+
+    testCompile 'junit:junit:4.12'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	runtimeOnly 'com.h2database:h2'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-root
+    implementation 'io.jsonwebtoken:jjwt:0.2'
+
+	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation 'mysql:mysql-connector-java:8.0.25'
+	// https://mvnrepository.com/artifact/com.h2database/h2
+    testImplementation 'com.h2database:h2:1.4.200'
+    // https://mvnrepository.com/artifact/org.flywaydb/flyway-core
+    implementation 'org.flywaydb:flyway-core:7.11.3'
+    // https://mvnrepository.com/artifact/org.hamcrest/hamcrest
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    
+       // Lombok
+   compileOnly 'org.projectlombok:lombok:1.18.2'
+   annotationProcessor 'org.projectlombok:lombok:1.18.2'
+
+   // MapStruct
+   compileOnly 'org.mapstruct:mapstruct-jdk8:1.2.0.Final'
+   annotationProcessor 'org.mapstruct:mapstruct-processor:1.2.0.Final'
+
+}
+
+test {
+	useJUnitPlatform()
+}
+
+compileJava {
+    options.compilerArgs += [
+        '-Amapstruct.suppressGeneratorTimestamp=true',
+        '-Amapstruct.suppressGeneratorVersionInfoComment=true',
+        '-Amapstruct.verbose=true',
+        '-Amapstruct.defaultComponentModel=spring'
+    ]
+}
+
