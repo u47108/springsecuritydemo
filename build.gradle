@@ -51,6 +51,12 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-root
     implementation 'io.jsonwebtoken:jjwt:0.2'
+    
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2',
+            // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
+            //'org.bouncycastle:bcprov-jdk15on:1.60',
+            'io.jsonwebtoken:jjwt-jackson:0.11.2' // or 'io.jsonwebtoken:jjwt-gson:0.11.2' for gson
 
 	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
     implementation 'mysql:mysql-connector-java:8.0.25'
@@ -71,9 +77,17 @@ dependencies {
 
 }
 
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		if (details.requested.group == 'com.fasterxml.jackson.core') {
+			details.useVersion '2.13.0'
+		}
+	}
+}
 test {
 	useJUnitPlatform()
 }
+
 
 compileJava {
     options.compilerArgs += [
