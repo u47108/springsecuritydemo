@@ -80,7 +80,7 @@ dependencies {
 configurations.all {
 	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
 		if (details.requested.group == 'com.fasterxml.jackson.core') {
-			details.useVersion '2.13.0'
+			details.useVersion '2.13.1'
 		}
 	}
 }
