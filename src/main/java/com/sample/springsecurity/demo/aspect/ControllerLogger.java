@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 @Aspect
@@ -21,7 +21,7 @@ public class ControllerLogger {
 
     private Logger logger = LoggerFactory.getLogger(ControllerLogger.class);
 
-    @Before("within(com.aut.prueba.web.controller.*Controller)")
+    @Before("within(com.sample.springsecurity.demo.web.controller.*Controller)")
     public void before(JoinPoint joinPoint) {
         String uuid = (String) request.getAttribute("log_uuid");
         CodeSignature methodSignature = (CodeSignature) joinPoint.getSignature();

@@ -8,12 +8,11 @@ buildscript {
      classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"}
 }
 
-
-
 plugins {
-	id 'org.springframework.boot' version '2.5.2'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'org.springframework.boot' version '3.3.0'
+	id 'io.spring.dependency-management' version '1.1.5'
 	id 'java'
+	id 'jacoco'
 	id "com.diffplug.eclipse.apt" version "3.26.0" // Only for Eclipse
 }
 apply plugin: 'eclipse'
@@ -21,7 +20,7 @@ apply plugin: 'io.spring.dependency-management'
 
 group = 'com.sample.springsecurity'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+sourceCompatibility = '21'
 
 configurations {
     mapstruct
@@ -30,62 +29,123 @@ configurations {
 	}
 }
 ext {
-    mapstructVersion = "1.4.2.Final"
-    lombokVersion= "1.18.16"
+    mapstructVersion = "1.5.5.Final"
+    lombokVersion = "1.18.30"
 }
  
 repositories {
 	mavenCentral()
-	maven { url 'http://repo1.maven.org/maven2' }
-    jcenter { url "http://jcenter.bintray.com/" }
+	// Fix: Use HTTPS instead of HTTP for security
+	maven { url 'https://repo1.maven.org/maven2' }
 }
 
 dependencies {
-
-    testCompile 'junit:junit:4.12'
+	// Fix: Remove JUnit 4 - use JUnit 5 exclusively
+	// testCompile 'junit:junit:4.12' - REMOVED (security risk)
+	
+	// Spring Boot Starters
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	// Database
 	runtimeOnly 'com.h2database:h2'
+	// Fix: Update MySQL connector to latest secure version
+	implementation 'com.mysql:mysql-connector-j:8.3.0'
+	
+	// Fix: Update H2 for tests to latest secure version
+	testImplementation 'com.h2database:h2:2.2.224'
+	
+	// Fix: Update Flyway to latest secure version
+	implementation 'org.flywaydb:flyway-core:10.11.0'
+	implementation 'org.flywaydb:flyway-mysql:10.11.0'
+	
+	// JWT - Fix: Use latest secure versions
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+	
+	// Lombok - Fix: Update to latest secure version
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	
+	// Jackson - Managed by Spring Boot, but ensure latest
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	
+	// MapStruct - Fix: Update to latest version compatible with Java 21
+	compileOnly "org.mapstruct:mapstruct:${mapstructVersion}"
+	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+	
+	// Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-root
-    implementation 'io.jsonwebtoken:jjwt:0.9.1'
-    
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2',
-            // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
-            //'org.bouncycastle:bcprov-jdk15on:1.60',
-            'io.jsonwebtoken:jjwt-jackson:0.11.2' // or 'io.jsonwebtoken:jjwt-gson:0.11.2' for gson
-
-	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
-    implementation 'mysql:mysql-connector-java:8.0.27'
-	// https://mvnrepository.com/artifact/com.h2database/h2
-    testImplementation 'com.h2database:h2:1.4.200'
-    // https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-    implementation 'org.flywaydb:flyway-core:7.11.3'
-    // https://mvnrepository.com/artifact/org.hamcrest/hamcrest
-    testImplementation 'org.hamcrest:hamcrest:2.2'
-    
-       // Lombok
-   compileOnly 'org.projectlombok:lombok:1.18.2'
-   annotationProcessor 'org.projectlombok:lombok:1.18.2'
-   compile 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
-   // MapStruct
-   compileOnly 'org.mapstruct:mapstruct-jdk8:1.2.0.Final'
-   annotationProcessor 'org.mapstruct:mapstruct-processor:1.2.0.Final'
-
+	testImplementation 'org.hamcrest:hamcrest:2.2'
+	testImplementation 'org.mockito:mockito-core:5.11.0'
+	testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
 }
 
-configurations.all {
-	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-		if (details.requested.group == 'com.fasterxml.jackson.core') {
-			details.useVersion '2.13.1'
-		}
-	}
-}
+// Fix: Remove deprecated configurations.all resolutionStrategy
+// Jackson version is now managed by Spring Boot parent
+
 test {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport // Generate coverage report after tests
+}
+
+jacoco {
+	toolVersion = "0.8.11"
+	reportsDirectory = file("$buildDir/reports/jacoco")
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = false
+		html.required = true
+		html.outputLocation = file("$buildDir/reports/jacoco/test/html")
+		csv.required = false
+	}
+	
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+				'com/sample/springsecurity/demo/DemoApplication**',
+				'com/sample/springsecurity/demo/config/**',
+				'**/*Dto.class',
+				'**/*Mapper.class',
+				'**/dto/**',
+				'**/presentation/**',
+				'**/mapper/**'
+			])
+		}))
+	}
+	
+	finalizedBy jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.70 // 70% minimum coverage
+			}
+		}
+		rule {
+			element = 'CLASS'
+			excludes = [
+				'com.sample.springsecurity.demo.DemoApplication',
+				'com.sample.springsecurity.demo.*Config',
+				'com.sample.springsecurity.demo.*Dto',
+				'com.sample.springsecurity.demo.*Mapper'
+			]
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.70
+			}
+		}
+	}
 }
 
 

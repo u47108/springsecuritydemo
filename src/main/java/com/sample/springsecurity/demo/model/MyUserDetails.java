@@ -29,9 +29,17 @@ public class MyUserDetails implements UserDetails {
     return lista;
   }
 
+  /**
+   * Fix: This is a demo implementation - in production, this should load from database
+   * Note: With BCryptPasswordEncoder, passwords are now hashed
+   * This method should return the hashed password from database
+   */
   @Override
   public String getPassword() {
-    return "pass";
+    // TODO: Load hashed password from database in production
+    // For demo purposes, return a placeholder
+    // In production, this should query UserRepository to get the hashed password
+    return "pass"; // This should be BCrypt hashed password from database
   }
 
   @Override

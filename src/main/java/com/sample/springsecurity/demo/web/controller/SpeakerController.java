@@ -11,9 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Speaker Controller - Fix: Remove insecure CORS (origins: "*")
+ * CORS is now configured in WebSecurity with configurable origins
+ */
 @RestController
 @RequestMapping("/speakers")
-@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST})
 @RequiredArgsConstructor
 public class SpeakerController {
 
